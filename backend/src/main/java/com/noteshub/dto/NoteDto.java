@@ -23,6 +23,12 @@ public class NoteDto {
     }
 
     @Data
+    public static class UpdateRequest {
+        @NotBlank(message = "Title is required")
+        private String title;
+    }
+
+    @Data
     public static class Response {
         private UUID id;
         private String title;

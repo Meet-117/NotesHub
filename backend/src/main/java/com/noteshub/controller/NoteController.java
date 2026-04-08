@@ -27,4 +27,16 @@ public class NoteController {
     public ResponseEntity<List<NoteDto.Response>> getBySubjectNote(@PathVariable UUID subjectNoteId) {
         return ResponseEntity.ok(noteService.getNotesBySubjectNote(subjectNoteId));
     }
+
+    @GetMapping("/{noteId}")
+    public ResponseEntity<NoteDto.Response> getNote(@PathVariable UUID noteId) {
+        return ResponseEntity.ok(noteService.getNoteById(noteId));
+    }
+
+    @PutMapping("/{noteId}")
+    public ResponseEntity<NoteDto.Response> updateNoteTitle(
+            @PathVariable UUID noteId,
+            @Valid @RequestBody NoteDto.UpdateRequest request) {
+        return ResponseEntity.ok(noteService.updateNoteTitle(noteId, request));
+    }
 }

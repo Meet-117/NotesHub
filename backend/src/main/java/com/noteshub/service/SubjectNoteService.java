@@ -3,6 +3,7 @@ package com.noteshub.service;
 import com.noteshub.dto.SubjectNoteDto;
 import com.noteshub.entity.SubjectNote;
 import com.noteshub.entity.User;
+import com.noteshub.enums.Visibility;
 import com.noteshub.repository.SubjectNoteRepository;
 import com.noteshub.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -43,6 +44,11 @@ public class SubjectNoteService {
                 .stream().map(this::toResponse).collect(Collectors.toList());
     }
 
+    @Transactional(readOnly = true)
+    public SubjectNoteDto.Response getById(UUID id) {
+        return toResponse(findSubjectNote(id));
+    }
+
     @Transactional
     public SubjectNoteDto.Response fork(UUID subjectNoteId, UUID newOwnerId) {
         SubjectNote original = findSubjectNote(subjectNoteId);
@@ -57,6 +63,12 @@ public class SubjectNoteService {
                 .build();
 
         return toResponse(subjectNoteRepository.save(fork));
+    }
+
+    @Transactional(readOnly = true)
+    public List<SubjectNoteDto.Response> searchPublic(String query) {
+        return subjectNoteRepository.searchByVisibilityAndQuery(Visibility.PUBLIC, query)
+                .stream().map(this::toResponse).collect(Collectors.toList());
     }
 
     SubjectNote findSubjectNote(UUID id) {

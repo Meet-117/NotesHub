@@ -25,6 +25,24 @@ const navItems = [
       </svg>
     ),
   },
+  {
+    label: 'Explore',
+    page: 'explore',
+    icon: (
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+        <path d="M10.68 11.74a6 6 0 01-7.922-8.982 6 6 0 018.982 7.922l3.04 3.04a.749.749 0 01-.326 1.275.749.749 0 01-.734-.215ZM11.5 7a4.499 4.499 0 10-8.997 0A4.499 4.499 0 0011.5 7Z"></path>
+      </svg>
+    ),
+  },
+  {
+    label: 'Bookmarks',
+    page: 'bookmarks',
+    icon: (
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+        <path d="M3 2.75C3 1.784 3.784 1 4.75 1h6.5c.966 0 1.75.784 1.75 1.75v11.5a.75.75 0 01-1.228.579L8 11.722l-3.772 3.107A.751.751 0 013 14.25Zm1.75-.25a.25.25 0 00-.25.25v9.91l3.023-2.489a.75.75 0 01.954 0l3.023 2.49V2.75a.25.25 0 00-.25-.25Z"></path>
+      </svg>
+    ),
+  },
 ]
 
 export default function Sidebar({ navigate, currentPage }) {

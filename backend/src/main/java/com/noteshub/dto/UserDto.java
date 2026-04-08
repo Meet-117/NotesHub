@@ -23,11 +23,22 @@ public class UserDto {
     }
 
     @Data
+    public static class LoginRequest {
+        @NotBlank(message = "Email is required")
+        @Email(message = "Invalid email format")
+        private String email;
+
+        @NotBlank(message = "Password is required")
+        private String password;
+    }
+
+    @Data
     public static class Response {
         private UUID id;
         private String name;
         private String email;
         private LocalDateTime createdAt;
         private LocalDateTime updatedAt;
+        private String token;
     }
 }

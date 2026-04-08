@@ -38,7 +38,7 @@ public class TagService {
 
     @Transactional
     public void addTagToNote(UUID noteId, UUID tagId) {
-        if (noteTagRepository.existsByNoteIdAndTagId(noteId, tagId)) {
+        if (noteTagRepository.existsByNote_IdAndTag_Id(noteId, tagId)) {
             throw new IllegalArgumentException("Tag is already applied to this note");
         }
         Note note = noteService.findNote(noteId);
@@ -50,16 +50,16 @@ public class TagService {
 
     @Transactional
     public void removeTagFromNote(UUID noteId, UUID tagId) {
-        if (!noteTagRepository.existsByNoteIdAndTagId(noteId, tagId)) {
+        if (!noteTagRepository.existsByNote_IdAndTag_Id(noteId, tagId)) {
             throw new IllegalArgumentException("Tag is not applied to this note");
         }
-        noteTagRepository.deleteByNoteIdAndTagId(noteId, tagId);
+        noteTagRepository.deleteByNote_IdAndTag_Id(noteId, tagId);
     }
 
     @Transactional(readOnly = true)
     public List<TagDto.Response> getTagsForNote(UUID noteId) {
         noteService.findNote(noteId);
-        return noteTagRepository.findAllByNoteId(noteId)
+        return noteTagRepository.findAllByNote_Id(noteId)
                 .stream()
                 .map(nt -> toResponse(nt.getTag()))
                 .collect(Collectors.toList());

@@ -28,11 +28,21 @@ public class SubjectNoteController {
         return ResponseEntity.ok(subjectNoteService.getByUser(userId));
     }
 
+    @GetMapping("/{id}")
+    public ResponseEntity<SubjectNoteDto.Response> getById(@PathVariable UUID id) {
+        return ResponseEntity.ok(subjectNoteService.getById(id));
+    }
+
     @PostMapping("/{subjectNoteId}/fork")
     public ResponseEntity<SubjectNoteDto.Response> fork(
             @PathVariable UUID subjectNoteId,
             @RequestParam UUID newOwnerId) {
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(subjectNoteService.fork(subjectNoteId, newOwnerId));
+    }
+
+    @GetMapping("/search")
+    public ResponseEntity<List<SubjectNoteDto.Response>> searchPublic(@RequestParam(defaultValue = "") String query) {
+        return ResponseEntity.ok(subjectNoteService.searchPublic(query));
     }
 }

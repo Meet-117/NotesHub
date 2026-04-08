@@ -3,14 +3,12 @@ package com.noteshub.service;
 import com.noteshub.dto.UserDto;
 import com.noteshub.entity.User;
 import com.noteshub.repository.UserRepository;
+import com.noteshub.security.JwtUtil;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.nio.charset.StandardCharsets;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
-import java.util.HexFormat;
 import java.util.UUID;
 
 @Service
@@ -18,6 +16,8 @@ import java.util.UUID;
 public class UserService {
 
     private final UserRepository userRepository;
+    private final PasswordEncoder passwordEncoder;
+    private final JwtUtil jwtUtil;
 
     @Transactional
     public UserDto.Response createUser(UserDto.CreateRequest request) {
@@ -31,10 +31,27 @@ public class UserService {
         User user = User.builder()
                 .name(request.getName())
                 .email(request.getEmail())
-                .passwordHash(sha256(request.getPassword()))
+                .passwordHash(passwordEncoder.encode(request.getPassword()))
                 .build();
 
-        return toResponse(userRepository.save(user));
+        user = userRepository.save(user);
+        UserDto.Response response = toResponse(user);
+        response.setToken(jwtUtil.generateToken(user.getEmail()));
+        return response;
+    }
+
+    @Transactional(readOnly = true)
+    public UserDto.Response login(UserDto.LoginRequest request) {
+        User user = userRepository.findByEmail(request.getEmail())
+                .orElseThrow(() -> new IllegalArgumentException("Invalid email or password"));
+
+        if (!passwordEncoder.matches(request.getPassword(), user.getPasswordHash())) {
+            throw new IllegalArgumentException("Invalid email or password");
+        }
+
+        UserDto.Response response = toResponse(user);
+        response.setToken(jwtUtil.generateToken(user.getEmail()));
+        return response;
     }
 
     @Transactional(readOnly = true)
@@ -42,16 +59,6 @@ public class UserService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new IllegalArgumentException("User not found: " + userId));
         return toResponse(user);
-    }
-
-    private static String sha256(String input) {
-        try {
-            MessageDigest digest = MessageDigest.getInstance("SHA-256");
-            byte[] hash = digest.digest(input.getBytes(StandardCharsets.UTF_8));
-            return HexFormat.of().formatHex(hash);
-        } catch (NoSuchAlgorithmException e) {
-            throw new RuntimeException("SHA-256 not available", e);
-        }
     }
 
     public static UserDto.Response toResponse(User user) {

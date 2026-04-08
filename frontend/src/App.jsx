@@ -1,42 +1,42 @@
-import { useState } from 'react'
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
+import { AuthProvider } from './context/AuthContext'
+import ProtectedRoute from './components/ProtectedRoute'
 import Dashboard from './pages/Dashboard'
 import SubjectNotesPage from './pages/SubjectNotesPage'
 import NotesListPage from './pages/NotesListPage'
 import NoteEditorPage from './pages/NoteEditorPage'
-import Sidebar from './components/Sidebar'
+import LoginPage from './pages/LoginPage'
+import SignupPage from './pages/SignupPage'
+import ExplorePage from './pages/ExplorePage'
+import BookmarksPage from './pages/BookmarksPage'
+import SidebarWrapper from './components/SidebarWrapper'
 import './index.css'
 
 export default function App() {
-  const [route, setRoute] = useState({ page: 'dashboard', params: {} })
-
-  const navigate = (page, params = {}) => setRoute({ page, params })
-
-  const renderPage = () => {
-    switch (route.page) {
-      case 'dashboard':    return <Dashboard navigate={navigate} />
-      case 'subject-notes': return <SubjectNotesPage navigate={navigate} />
-      case 'notes-list':   return <NotesListPage navigate={navigate} subjectNoteId={route.params.subjectNoteId} subjectNoteTitle={route.params.title} />
-      case 'note-editor':  return <NoteEditorPage navigate={navigate} noteId={route.params.noteId} noteTitle={route.params.noteTitle} />
-      default:             return <Dashboard navigate={navigate} />
-    }
-  }
-
-  // Note editor is full-screen, no sidebar
-  if (route.page === 'note-editor') {
-    return (
-      <div style={{ display: 'flex', height: '100vh' }}>
-        <Sidebar navigate={navigate} currentPage={route.page} />
-        {renderPage()}
-      </div>
-    )
-  }
-
   return (
-    <div className="app-shell">
-      <Sidebar navigate={navigate} currentPage={route.page} />
-      <main className="app-main">
-        {renderPage()}
-      </main>
-    </div>
+    <AuthProvider>
+      <BrowserRouter>
+        <Routes>
+          <Route path="/login" element={<LoginPage />} />
+          <Route path="/signup" element={<SignupPage />} />
+          
+          <Route element={<ProtectedRoute><SidebarWrapper /></ProtectedRoute>}>
+            <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/subjects" element={<SubjectNotesPage />} />
+            <Route path="/subjects/:subjectId" element={<NotesListPage />} />
+            <Route path="/explore" element={<ExplorePage />} />
+            <Route path="/bookmarks" element={<BookmarksPage />} />
+          </Route>
+
+          <Route path="/notes/:noteId" element={
+            <ProtectedRoute>
+              <NoteEditorPage />
+            </ProtectedRoute>
+          } />
+
+          <Route path="*" element={<Navigate to="/dashboard" replace />} />
+        </Routes>
+      </BrowserRouter>
+    </AuthProvider>
   )
 }

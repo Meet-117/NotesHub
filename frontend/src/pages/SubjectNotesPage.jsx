@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { getSubjectNotes, createSubjectNote, forkSubjectNote } from '../api/client'
-
-const DEMO_USER_KEY = 'noteshub_user_id'
+import { useAuth } from '../context/AuthContext'
 
 function SubjectNoteCard({ sn, onClick, onFork }) {
   const [forking, setForking] = useState(false)
@@ -70,8 +70,10 @@ function SubjectNoteCard({ sn, onClick, onFork }) {
   )
 }
 
-export default function SubjectNotesPage({ navigate }) {
-  const userId = localStorage.getItem(DEMO_USER_KEY)
+export default function SubjectNotesPage() {
+  const navigate = useNavigate()
+  const { user } = useAuth()
+  const userId = user?.id
   const [notes, setNotes] = useState([])
   const [loading, setLoading] = useState(true)
   const [showModal, setShowModal] = useState(false)
@@ -187,7 +189,7 @@ export default function SubjectNotesPage({ navigate }) {
             <SubjectNoteCard
               key={sn.id}
               sn={sn}
-              onClick={() => navigate('notes-list', { subjectNoteId: sn.id, title: sn.title })}
+              onClick={() => navigate(`/subjects/${sn.id}`)}
               onFork={handleFork}
             />
           ))}

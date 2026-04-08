@@ -43,6 +43,18 @@ public class NoteService {
                 .stream().map(this::toResponse).collect(Collectors.toList());
     }
 
+    @Transactional(readOnly = true)
+    public NoteDto.Response getNoteById(UUID noteId) {
+        return toResponse(findNote(noteId));
+    }
+
+    @Transactional
+    public NoteDto.Response updateNoteTitle(UUID noteId, NoteDto.UpdateRequest request) {
+        Note note = findNote(noteId);
+        note.setTitle(request.getTitle());
+        return toResponse(noteRepository.save(note));
+    }
+
     Note findNote(UUID noteId) {
         return noteRepository.findById(noteId)
                 .orElseThrow(() -> new IllegalArgumentException("Note not found: " + noteId));

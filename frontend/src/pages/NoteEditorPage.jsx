@@ -1,8 +1,9 @@
-import { useState, useEffect, useRef, useCallback } from 'react'
+import { useState, useEffect, useRef } from 'react'
+import { useParams, useNavigate } from 'react-router-dom'
 import { useEditor, EditorContent } from '@tiptap/react'
 import StarterKit from '@tiptap/starter-kit'
 import Placeholder from '@tiptap/extension-placeholder'
-import { saveVersion, getVersionHistory, restoreVersion, getTagsForNote, getAllTags, addTagToNote, removeTagFromNote } from '../api/client'
+import { getNote, saveVersion, getVersionHistory, restoreVersion, getTagsForNote, getAllTags, addTagToNote, removeTagFromNote, updateNoteTitle, createTag } from '../api/client'
 
 // ── Toolbar config ──────────────────────────────────────────────
 const TOOLBAR = [
@@ -80,8 +81,12 @@ function ToolbarButton({ btn, editor }) {
   )
 }
 
-export default function NoteEditorPage({ navigate, noteId, noteTitle }) {
-  const [title, setTitle] = useState(noteTitle || '')
+export default function NoteEditorPage() {
+  const { noteId } = useParams()
+  const navigate = useNavigate()
+  
+  const [title, setTitle] = useState('Loading...')
+  const [subjectNoteId, setSubjectNoteId] = useState(null)
   const [history, setHistory] = useState([])
   const [tags, setTags] = useState([])
   const [allTags, setAllTags] = useState([])
@@ -91,6 +96,7 @@ export default function NoteEditorPage({ navigate, noteId, noteTitle }) {
   const [saveMsg, setSaveMsg] = useState('')
   const [commitMsg, setCommitMsg] = useState('')
   const [showCommit, setShowCommit] = useState(false)
+  const [tagInput, setTagInput] = useState('')
   const titleRef = useRef(null)
 
   // Inject CSS once
@@ -127,11 +133,22 @@ export default function NoteEditorPage({ navigate, noteId, noteTitle }) {
 
   // Load version history & tags
   useEffect(() => {
-    if (!noteId) return
-    getVersionHistory(noteId).then(setHistory).catch(console.error)
+    if (!noteId || !editor) return
+    getNote(noteId).then(n => {
+      setTitle(n.title)
+      setSubjectNoteId(n.subjectNoteId)
+    }).catch(console.error)
+    
+    getVersionHistory(noteId).then(h => {
+      setHistory(h)
+      if (h.length > 0) {
+        editor.commands.setContent(h[0].contentText || '')
+      }
+    }).catch(console.error)
+    
     getTagsForNote(noteId).then(setTags).catch(console.error)
     getAllTags().then(setAllTags).catch(console.error)
-  }, [noteId])
+  }, [noteId, editor])
 
   // Auto-resize title
   useEffect(() => {
@@ -141,11 +158,19 @@ export default function NoteEditorPage({ navigate, noteId, noteTitle }) {
     el.style.height = el.scrollHeight + 'px'
   }, [title])
 
+  const handleSaveTitle = async () => {
+    if (!noteId || !title.trim()) return
+    try {
+      await updateNoteTitle(noteId, { title })
+    } catch (e) { console.error('Failed to update title', e) }
+  }
+
   const handleSave = async () => {
     if (!editor || !noteId) return
     if (!commitMsg.trim()) { setShowCommit(true); return }
     setSaving(true)
     try {
+      await updateNoteTitle(noteId, { title })
       await saveVersion({ noteId, contentText: editor.getHTML(), changeMessage: commitMsg })
       const h = await getVersionHistory(noteId)
       setHistory(h)
@@ -186,7 +211,19 @@ export default function NoteEditorPage({ navigate, noteId, noteTitle }) {
     } catch (e) { alert(e.message) }
   }
 
-  const unaddedTags = allTags.filter(t => !tags.find(x => x.id === t.id))
+  const handleCreateTag = async (name) => {
+    try {
+      const newTag = await createTag({ name })
+      setAllTags(all => [...all, newTag])
+      await addTagToNote(noteId, newTag.id)
+      setTags(t => [...t, newTag])
+      setTagInput('')
+    } catch (e) { alert(e.message) }
+  }
+
+  const unaddedTags = allTags
+    .filter(t => !tags.find(x => x.id === t.id))
+    .filter(t => t.name.toLowerCase().includes(tagInput.trim().toLowerCase()));
 
   return (
     <div style={{ display: 'flex', height: '100vh', overflow: 'hidden' }}>
@@ -201,7 +238,7 @@ export default function NoteEditorPage({ navigate, noteId, noteTitle }) {
           background: 'var(--bg-secondary)', flexShrink: 0,
         }}>
           <button
-            onClick={() => navigate('notes-list')}
+            onClick={() => subjectNoteId ? navigate(`/subjects/${subjectNoteId}`) : navigate('/dashboard')}
             style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4, fontSize: 13, fontFamily: 'var(--font)', padding: '4px 0' }}
           >
             <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor"><path d="M9.78 12.78a.75.75 0 01-1.06 0L4.47 8.53a.75.75 0 010-1.06l4.25-4.25a.75.75 0 011.06 1.06L6.06 8l3.72 3.72a.75.75 0 010 1.06z"/></svg>
@@ -249,6 +286,7 @@ export default function NoteEditorPage({ navigate, noteId, noteTitle }) {
               ref={titleRef}
               value={title}
               onChange={e => setTitle(e.target.value)}
+              onBlur={handleSaveTitle}
               placeholder="Note title…"
               rows={1}
               style={{
@@ -347,6 +385,29 @@ export default function NoteEditorPage({ navigate, noteId, noteTitle }) {
             <button onClick={() => setShowTags(false)} style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', fontSize: 18, lineHeight: 1, padding: 0 }}>×</button>
           </div>
           <div style={{ flex: 1, overflow: 'auto', padding: 16 }}>
+            <div style={{ marginBottom: 16 }}>
+              <input
+                className="input"
+                style={{ width: '100%', fontSize: 13, padding: '6px 10px' }}
+                placeholder="Search or create tag..."
+                value={tagInput}
+                onChange={e => setTagInput(e.target.value)}
+                onKeyDown={e => {
+                  if (e.key === 'Enter' && tagInput.trim() && !allTags.find(t => t.name.toLowerCase() === tagInput.trim().toLowerCase())) {
+                    handleCreateTag(tagInput.trim());
+                  }
+                }}
+              />
+              {tagInput.trim() && !allTags.find(t => t.name.toLowerCase() === tagInput.trim().toLowerCase()) && (
+                <button 
+                  className="btn btn-secondary btn-sm" 
+                  style={{ width: '100%', marginTop: 8 }}
+                  onClick={() => handleCreateTag(tagInput.trim())}
+                >
+                  + Create "{tagInput.trim()}"
+                </button>
+              )}
+            </div>
             {tags.length > 0 && (
               <>
                 <div style={{ fontSize: 12, color: 'var(--text-muted)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 8 }}>Applied</div>

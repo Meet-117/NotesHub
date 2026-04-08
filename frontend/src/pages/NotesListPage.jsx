@@ -1,8 +1,12 @@
 import { useState, useEffect } from 'react'
-import { getNotesBySubject, createNote } from '../api/client'
+import { useParams, useNavigate } from 'react-router-dom'
+import { getNotesBySubject, createNote, getSubjectNote } from '../api/client'
 
-export default function NotesListPage({ navigate, subjectNoteId, subjectNoteTitle }) {
+export default function NotesListPage() {
+  const { subjectId: subjectNoteId } = useParams()
+  const navigate = useNavigate()
   const [notes, setNotes] = useState([])
+  const [subjectNoteTitle, setSubjectNoteTitle] = useState('Loading...')
   const [loading, setLoading] = useState(true)
   const [showModal, setShowModal] = useState(false)
   const [form, setForm] = useState({ title: '', noteType: 'TEXT' })
@@ -11,8 +15,14 @@ export default function NotesListPage({ navigate, subjectNoteId, subjectNoteTitl
 
   const load = () => {
     setLoading(true)
-    getNotesBySubject(subjectNoteId)
-      .then(setNotes)
+    Promise.all([
+      getNotesBySubject(subjectNoteId),
+      getSubjectNote(subjectNoteId)
+    ])
+      .then(([notesData, subjectData]) => {
+        setNotes(notesData)
+        setSubjectNoteTitle(subjectData.title)
+      })
       .catch(console.error)
       .finally(() => setLoading(false))
   }
@@ -35,7 +45,7 @@ export default function NotesListPage({ navigate, subjectNoteId, subjectNoteTitl
     <div className="page">
       {/* Breadcrumb */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 20, fontSize: 13, color: 'var(--text-muted)' }}>
-        <button onClick={() => navigate('subject-notes')} style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', fontFamily: 'var(--font)', fontSize: 13, padding: 0 }}>
+        <button onClick={() => navigate('/subjects')} style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', fontFamily: 'var(--font)', fontSize: 13, padding: 0 }}>
           Notebooks
         </button>
         <svg width="12" height="12" viewBox="0 0 16 16" fill="currentColor"><path d="M6.22 3.22a.75.75 0 011.06 0l4.25 4.25a.75.75 0 010 1.06l-4.25 4.25a.75.75 0 01-1.06-1.06L9.94 8 6.22 4.28a.75.75 0 010-1.06z"/></svg>
@@ -84,7 +94,7 @@ export default function NotesListPage({ navigate, subjectNoteId, subjectNoteTitl
           {notes.map(note => (
             <div
               key={note.id}
-              onClick={() => navigate('note-editor', { noteId: note.id, noteTitle: note.title })}
+              onClick={() => navigate(`/notes/${note.id}`)}
               style={{
                 display: 'grid', gridTemplateColumns: '1fr 80px 160px 120px',
                 padding: '12px 16px', cursor: 'pointer', borderRadius: 6,
