@@ -12,4 +12,5 @@ public interface NoteTagRepository extends JpaRepository<NoteTag, NoteTag.NoteTa
     List<NoteTag> findAllByNote_Id(UUID noteId);
     boolean existsByNote_IdAndTag_Id(UUID noteId, UUID tagId);
     void deleteByNote_IdAndTag_Id(UUID noteId, UUID tagId);
+    void deleteAllByNote_Id(UUID noteId);
 }

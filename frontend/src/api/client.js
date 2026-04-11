@@ -29,12 +29,14 @@ export const getSubjectNotes    = (userId)            => req('GET',  `/subject-n
 export const forkSubjectNote    = (id, newOwnerId)    => req('POST', `/subject-notes/${id}/fork?newOwnerId=${newOwnerId}`)
 export const getSubjectNote     = (id)                => req('GET',  `/subject-notes/${id}`)
 export const searchSubjectNotes = (query)             => req('GET',  `/subject-notes/search?query=${encodeURIComponent(query)}`)
+export const getPublicNotesByUser = (userId, query)   => req('GET',  `/subject-notes/public/user/${userId}?query=${encodeURIComponent(query || '')}`)
 
 // Notes
 export const createNote         = (data)              => req('POST', '/notes', data)
 export const getNotesBySubject  = (subjectNoteId)     => req('GET',  `/notes/subject/${subjectNoteId}`)
 export const getNote            = (noteId)            => req('GET',  `/notes/${noteId}`)
 export const updateNoteTitle    = (noteId, data)      => req('PUT',  `/notes/${noteId}`, data)
+export const deleteNote         = (id)                => req('DELETE', `/notes/${id}`)
 
 // Versions
 export const saveVersion        = (data)              => req('POST', '/versions', data)
@@ -60,3 +62,18 @@ export const deleteSource       = (sourceId)          => req('DELETE', `/sources
 // Bookmarks
 export const toggleBookmark     = (userId, subjectNoteId) => req('POST', `/bookmarks/toggle?userId=${userId}&subjectNoteId=${subjectNoteId}`)
 export const getUserBookmarks   = (userId)            => req('GET',  `/bookmarks/user/${userId}`)
+
+// Files
+export const uploadFile = async (file) => {
+  const formData = new FormData()
+  formData.append('file', file)
+  const res = await fetch(`${BASE}/files/upload`, {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${localStorage.getItem('token')}`
+    },
+    body: formData
+  })
+  if (!res.ok) throw new Error('Upload failed')
+  return res.text()
+}

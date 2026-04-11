@@ -45,4 +45,11 @@ public class SubjectNoteController {
     public ResponseEntity<List<SubjectNoteDto.Response>> searchPublic(@RequestParam(defaultValue = "") String query) {
         return ResponseEntity.ok(subjectNoteService.searchPublic(query));
     }
+
+    @GetMapping("/public/user/{userId}")
+    public ResponseEntity<List<SubjectNoteDto.Response>> getPublicByUser(
+            @PathVariable UUID userId,
+            @RequestParam(defaultValue = "") String query) {
+        return ResponseEntity.ok(subjectNoteService.getPublicByUser(userId, query));
+    }
 }

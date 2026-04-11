@@ -8,6 +8,7 @@ import NoteEditorPage from './pages/NoteEditorPage'
 import LoginPage from './pages/LoginPage'
 import SignupPage from './pages/SignupPage'
 import ExplorePage from './pages/ExplorePage'
+import ProfilePage from './pages/ProfilePage'
 import BookmarksPage from './pages/BookmarksPage'
 import SidebarWrapper from './components/SidebarWrapper'
 import './index.css'
@@ -25,6 +26,7 @@ export default function App() {
             <Route path="/subjects" element={<SubjectNotesPage />} />
             <Route path="/subjects/:subjectId" element={<NotesListPage />} />
             <Route path="/explore" element={<ExplorePage />} />
+            <Route path="/profile/:userId" element={<ProfilePage />} />
             <Route path="/bookmarks" element={<BookmarksPage />} />
           </Route>
 

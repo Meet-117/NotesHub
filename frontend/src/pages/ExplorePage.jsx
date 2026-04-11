@@ -14,10 +14,17 @@ export default function ExplorePage() {
   // Initial load
   useEffect(() => {
     if (user) {
-      handleSearch('')
       loadBookmarks()
     }
   }, [user])
+
+  // Debounced search
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      handleSearch(query)
+    }, 300)
+    return () => clearTimeout(timer)
+  }, [query])
 
   const loadBookmarks = async () => {
     try {
@@ -84,14 +91,10 @@ export default function ExplorePage() {
         <input
           className="input"
           style={{ flex: 1 }}
-          placeholder="Search public notebooks by title or description..."
+          placeholder="Search public notebooks by title, description, or tags..."
           value={query}
           onChange={e => setQuery(e.target.value)}
-          onKeyDown={e => { if (e.key === 'Enter') handleSearch() }}
         />
-        <button className="btn btn-primary" onClick={handleSearch} disabled={loading}>
-          {loading ? 'Searching...' : 'Search'}
-        </button>
       </div>
 
       {results.length > 0 ? (
@@ -100,7 +103,12 @@ export default function ExplorePage() {
             const isBookmarked = bookmarkedIds.has(sn.id)
             const isOwner = sn.ownerId === user?.id
             return (
-              <div key={sn.id} className="card" style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+              <div 
+                key={sn.id} 
+                className="card" 
+                style={{ display: 'flex', alignItems: 'center', gap: 16, cursor: 'pointer' }}
+                onClick={() => navigate(`/subjects/${sn.id}`, { state: { source: 'explore' } })}
+              >
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
                     <h3 style={{ fontSize: 16, fontWeight: 600, margin: 0 }}>{sn.title}</h3>

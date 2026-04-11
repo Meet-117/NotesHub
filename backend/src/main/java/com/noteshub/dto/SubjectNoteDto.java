@@ -34,6 +34,8 @@ public class SubjectNoteDto {
         private String ownerName;
         private UUID forkedFromId;
         private String forkedFromTitle;
+        private UUID originalOwnerId;
+        private String originalOwnerName;
         private LocalDateTime createdAt;
         private LocalDateTime updatedAt;
     }

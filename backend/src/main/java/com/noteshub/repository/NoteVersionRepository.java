@@ -12,4 +12,5 @@ import java.util.UUID;
 public interface NoteVersionRepository extends JpaRepository<NoteVersion, UUID> {
     List<NoteVersion> findAllByNoteIdOrderByVersionNumberDesc(UUID noteId);
     Optional<NoteVersion> findTopByNoteIdOrderByVersionNumberDesc(UUID noteId);
+    void deleteAllByNoteId(UUID noteId);
 }

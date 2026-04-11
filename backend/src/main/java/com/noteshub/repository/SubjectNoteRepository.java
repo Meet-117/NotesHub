@@ -14,8 +14,12 @@ import java.util.UUID;
 public interface SubjectNoteRepository extends JpaRepository<SubjectNote, UUID> {
     List<SubjectNote> findAllByOwnerId(UUID ownerId);
 
-    @Query("SELECT s FROM SubjectNote s WHERE s.visibility = :visibility AND " +
+    @Query("SELECT DISTINCT s FROM SubjectNote s " +
+           "LEFT JOIN NoteTag nt ON nt.note.subjectNote.id = s.id " +
+           "LEFT JOIN Tag t ON nt.tag.id = t.id " +
+           "WHERE s.visibility = :visibility AND " +
            "(LOWER(s.title) LIKE LOWER(CONCAT('%', :query, '%')) OR " +
-           "LOWER(s.description) LIKE LOWER(CONCAT('%', :query, '%')))")
+           "LOWER(s.description) LIKE LOWER(CONCAT('%', :query, '%')) OR " +
+           "LOWER(t.name) LIKE LOWER(CONCAT('%', :query, '%')))")
     List<SubjectNote> searchByVisibilityAndQuery(@Param("visibility") Visibility visibility, @Param("query") String query);
 }

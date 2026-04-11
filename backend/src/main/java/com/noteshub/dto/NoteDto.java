@@ -20,6 +20,8 @@ public class NoteDto {
 
         @NotNull(message = "Subject note ID is required")
         private UUID subjectNoteId;
+
+        private String fileUrl;
     }
 
     @Data

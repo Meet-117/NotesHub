@@ -6,9 +6,11 @@ export default function SidebarWrapper() {
   const navigate = useNavigate();
   // Map standard URLs to the old page keys so Sidebar highlights correctly.
   let currentPage = 'dashboard';
-  if (location.pathname.startsWith('/explore')) currentPage = 'explore';
+  if (location.state?.source === 'explore') currentPage = 'explore';
+  else if (location.pathname.startsWith('/explore')) currentPage = 'explore';
   else if (location.pathname.startsWith('/bookmarks')) currentPage = 'bookmarks';
   else if (location.pathname.startsWith('/subjects')) currentPage = 'subject-notes';
+  else if (location.state?.source === 'profile') currentPage = 'explore'; // Keep Explore active for profiles too
   
   // Create a navigate wrapper that behaves exactly like the old custom router
   // so Sidebar component doesn't need to change much, just adapt its paths.

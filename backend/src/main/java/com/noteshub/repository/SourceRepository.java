@@ -10,4 +10,5 @@ import java.util.UUID;
 @Repository
 public interface SourceRepository extends JpaRepository<Source, UUID> {
     List<Source> findAllByNoteId(UUID noteId);
+    void deleteAllByNoteId(UUID noteId);
 }

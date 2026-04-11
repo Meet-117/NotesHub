@@ -39,4 +39,10 @@ public class NoteController {
             @Valid @RequestBody NoteDto.UpdateRequest request) {
         return ResponseEntity.ok(noteService.updateNoteTitle(noteId, request));
     }
+
+    @DeleteMapping("/{noteId}")
+    public ResponseEntity<Void> deleteNote(@PathVariable UUID noteId) {
+        noteService.deleteNote(noteId);
+        return ResponseEntity.noContent().build();
+    }
 }
